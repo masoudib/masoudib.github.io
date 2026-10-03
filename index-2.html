@@ -1,0 +1,400 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>My Library</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    /* ---------- Colors & basics ---------- */
+    :root {
+      --bg: #f3ece1;
+      --ink: #2b2118;
+      --muted: #7a6a58;
+      --wood: #8b5a2b;
+      --wood-dark: #5e3a19;
+      --wood-back: #e6d6bf;
+      --card: #fffaf2;
+      --accent: #a8442a;
+      --line: #d9c8b0;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--ink);
+      font-family: Inter, system-ui, sans-serif;
+    }
+    .wrap { max-width: 1000px; margin: 0 auto; padding: 32px 16px 64px; }
+
+    /* ---------- Header ---------- */
+    header { display: flex; flex-wrap: wrap; gap: 16px; align-items: end; justify-content: space-between; margin-bottom: 28px; }
+    h1 { font-family: Fraunces, Georgia, serif; font-size: 2.6rem; margin: 0; letter-spacing: -0.02em; }
+    .subtitle { color: var(--muted); margin: 4px 0 0; }
+    .toolbar { display: flex; flex-wrap: wrap; gap: 8px; }
+    input, select, textarea, button { font: inherit; }
+    .search {
+      padding: 9px 12px; border: 1px solid var(--line); border-radius: 8px;
+      background: var(--card); color: var(--ink); min-width: 180px;
+    }
+    button {
+      border: 1px solid var(--line); background: var(--card); color: var(--ink);
+      padding: 9px 14px; border-radius: 8px; cursor: pointer;
+    }
+    button:hover { border-color: var(--muted); }
+    button.primary { background: var(--accent); border-color: var(--accent); color: white; font-weight: 600; }
+    button.primary:hover { filter: brightness(1.08); }
+    button.danger { color: var(--accent); }
+
+    /* ---------- Shelves ---------- */
+    .shelf { margin-bottom: 36px; }
+    .shelf-head { display: flex; align-items: baseline; gap: 10px; margin-bottom: 8px; }
+    .shelf-head h2 { font-family: Fraunces, Georgia, serif; font-size: 1.4rem; margin: 0; }
+    .count { color: var(--muted); font-size: 0.9rem; }
+    .shelf-head .spacer { flex: 1; }
+    .link-btn { background: none; border: none; padding: 4px 6px; color: var(--muted); font-size: 0.85rem; }
+    .link-btn:hover { color: var(--ink); text-decoration: underline; }
+
+    /* The bookcase: every row is 190px tall with a wooden plank at the bottom */
+    .case {
+      display: flex; flex-wrap: wrap; align-content: flex-start;
+      padding: 0 14px;
+      background:
+        repeating-linear-gradient(to bottom,
+          transparent 0 176px,
+          var(--wood) 176px 186px,
+          var(--wood-dark) 186px 190px),
+        var(--wood-back);
+      border-left: 10px solid var(--wood-dark);
+      border-right: 10px solid var(--wood-dark);
+      border-radius: 4px;
+      min-height: 190px;
+    }
+    .slot { height: 190px; display: flex; align-items: flex-end; padding-bottom: 14px; }
+
+    /* A book spine */
+    .book {
+      margin-right: 3px;
+      border: none; border-radius: 3px 3px 1px 1px;
+      padding: 10px 0;
+      color: white;
+      writing-mode: vertical-rl;
+      text-orientation: mixed;
+      display: flex; align-items: center; justify-content: space-between;
+      overflow: hidden;
+      box-shadow: inset -4px 0 6px rgba(0,0,0,0.18), inset 3px 0 3px rgba(255,255,255,0.15);
+      transition: transform 0.15s;
+      cursor: pointer;
+    }
+    .book:hover { transform: translateY(-8px); }
+    .book .t { font-family: Fraunces, Georgia, serif; font-weight: 700; font-size: 0.85rem; line-height: 1.1; max-height: 70%; overflow: hidden; }
+    .book .a { font-size: 0.65rem; opacity: 0.85; max-height: 28%; overflow: hidden; }
+    .book.light { color: var(--ink); }
+
+    .empty { color: var(--muted); align-self: center; padding: 0 8px 14px; font-style: italic; }
+
+    /* ---------- Dialog (the add/edit form) ---------- */
+    dialog {
+      border: none; border-radius: 14px; padding: 24px;
+      width: min(440px, calc(100vw - 32px));
+      background: var(--card); color: var(--ink);
+      box-shadow: 0 20px 60px rgba(0,0,0,0.25);
+    }
+    dialog::backdrop { background: rgba(43,33,24,0.45); }
+    dialog h3 { font-family: Fraunces, Georgia, serif; margin: 0 0 16px; font-size: 1.4rem; }
+    label { display: block; font-size: 0.85rem; font-weight: 500; color: var(--muted); margin: 12px 0 4px; }
+    dialog input[type=text], dialog select, dialog textarea {
+      width: 100%; padding: 9px 11px; border: 1px solid var(--line); border-radius: 8px;
+      background: white; color: var(--ink);
+    }
+    dialog textarea { min-height: 70px; resize: vertical; }
+    .row { display: flex; gap: 12px; }
+    .row > div { flex: 1; }
+    input[type=color] { width: 100%; height: 40px; border: 1px solid var(--line); border-radius: 8px; padding: 2px; background: white; }
+    .stars { display: flex; gap: 2px; }
+    .stars button { border: none; background: none; padding: 2px; font-size: 1.4rem; color: var(--line); }
+    .stars button.on { color: #d49a1a; }
+    .actions { display: flex; gap: 8px; margin-top: 20px; }
+    .actions .spacer { flex: 1; }
+
+    footer { margin-top: 40px; color: var(--muted); font-size: 0.85rem; display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <header>
+      <div>
+        <h1>My Library</h1>
+        <p class="subtitle" id="summary"></p>
+      </div>
+      <div class="toolbar">
+        <input class="search" id="search" type="search" placeholder="Search books…">
+        <button onclick="addShelf()">+ Shelf</button>
+        <button class="primary" onclick="openBook()">+ Book</button>
+      </div>
+    </header>
+
+    <main id="shelves"></main>
+
+    <footer>
+      Your books are saved in this browser.
+      <button class="link-btn" onclick="exportData()">Download backup</button>
+      <button class="link-btn" onclick="document.getElementById('importFile').click()">Restore backup</button>
+      <input type="file" id="importFile" accept=".json" hidden onchange="importData(this)">
+    </footer>
+  </div>
+
+  <!-- The form for adding or editing a book -->
+  <dialog id="bookDialog">
+    <form method="dialog" onsubmit="saveBook(event)">
+      <h3 id="dialogTitle">Add a book</h3>
+      <label for="fTitle">Title</label>
+      <input type="text" id="fTitle" required>
+      <label for="fAuthor">Author</label>
+      <input type="text" id="fAuthor">
+      <div class="row">
+        <div>
+          <label for="fShelf">Shelf</label>
+          <select id="fShelf"></select>
+        </div>
+        <div style="flex: 0 0 90px">
+          <label for="fColor">Spine color</label>
+          <input type="color" id="fColor">
+        </div>
+      </div>
+      <label>Rating</label>
+      <div class="stars" id="fStars"></div>
+      <label for="fNotes">Notes</label>
+      <textarea id="fNotes" placeholder="Why you love it, a favorite quote…"></textarea>
+      <div class="actions">
+        <button type="button" class="danger" id="deleteBtn" onclick="deleteBook()">Delete</button>
+        <span class="spacer"></span>
+        <button type="button" onclick="bookDialog.close()">Cancel</button>
+        <button type="submit" class="primary">Save</button>
+      </div>
+    </form>
+  </dialog>
+
+  <script>
+    // ---------- Data ----------
+    // Everything lives in one object: a list of shelves and a list of books.
+    const STORAGE_KEY = 'my-library';
+    const PALETTE = ['#7b2d26', '#2f4858', '#33658a', '#86a873', '#bb9f06', '#4a3b5c', '#c8553d', '#1b4332', '#6d597a', '#b56576', '#355070', '#a47148'];
+
+    let library = load() || {
+      shelves: [{ id: uid(), name: 'Favorites' }],
+      books: []
+    };
+    // A few sample books on first visit so the shelf isn't empty (delete them anytime)
+    if (!localStorageHas()) {
+      const s = library.shelves[0].id;
+      library.books = [
+        { id: uid(), title: 'Pride and Prejudice', author: 'Jane Austen', shelf: s, color: '#7b2d26', rating: 5, notes: '' },
+        { id: uid(), title: 'Moby-Dick', author: 'Herman Melville', shelf: s, color: '#2f4858', rating: 4, notes: '' },
+        { id: uid(), title: 'Frankenstein', author: 'Mary Shelley', shelf: s, color: '#1b4332', rating: 5, notes: '' },
+      ];
+      save();
+    }
+
+    let editingId = null;   // which book the form is editing (null = adding a new one)
+    let currentRating = 0;
+
+    function uid() { return Math.random().toString(36).slice(2, 10); }
+
+    function load() {
+      try { return JSON.parse(localStorage.getItem(STORAGE_KEY)); } catch { return null; }
+    }
+    function localStorageHas() {
+      try { return localStorage.getItem(STORAGE_KEY) !== null; } catch { return false; }
+    }
+    function save() {
+      try { localStorage.setItem(STORAGE_KEY, JSON.stringify(library)); } catch {}
+    }
+
+    // ---------- Drawing the shelves ----------
+    // A simple "hash" so each title always gets the same height and color
+    function hash(str) {
+      let h = 0;
+      for (const ch of str) h = (h * 31 + ch.charCodeAt(0)) >>> 0;
+      return h;
+    }
+    function isLight(hex) {
+      const n = parseInt(hex.slice(1), 16);
+      const r = n >> 16, g = (n >> 8) & 255, b = n & 255;
+      return (r * 299 + g * 587 + b * 114) / 1000 > 160;
+    }
+    function escapeHtml(s) {
+      return s.replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+    }
+
+    function render() {
+      const query = document.getElementById('search').value.trim().toLowerCase();
+      const container = document.getElementById('shelves');
+      container.innerHTML = '';
+
+      for (const shelf of library.shelves) {
+        const books = library.books.filter(b =>
+          b.shelf === shelf.id &&
+          (!query || b.title.toLowerCase().includes(query) || (b.author || '').toLowerCase().includes(query))
+        );
+
+        const section = document.createElement('section');
+        section.className = 'shelf';
+        section.innerHTML = `
+          <div class="shelf-head">
+            <h2>${escapeHtml(shelf.name)}</h2>
+            <span class="count">${books.length} ${books.length === 1 ? 'book' : 'books'}</span>
+            <span class="spacer"></span>
+            <button class="link-btn" onclick="renameShelf('${shelf.id}')">Rename</button>
+            <button class="link-btn" onclick="removeShelf('${shelf.id}')">Remove</button>
+          </div>
+          <div class="case"></div>`;
+        const shelfCase = section.querySelector('.case');
+
+        if (books.length === 0) {
+          shelfCase.innerHTML = `<div class="empty">${query ? 'No matches here.' : 'Empty shelf — add a book!'}</div>`;
+        }
+
+        for (const book of books) {
+          const h = hash(book.title);
+          const height = 125 + (h % 40);                        // 125–164px tall
+          const width = 34 + Math.min(book.title.length, 30) * 0.6 + (h % 8); // wider for long titles
+          const slot = document.createElement('div');
+          slot.className = 'slot';
+          const spine = document.createElement('button');
+          spine.className = 'book' + (isLight(book.color) ? ' light' : '');
+          spine.style.height = height + 'px';
+          spine.style.width = width + 'px';
+          spine.style.background = book.color;
+          spine.title = `${book.title}${book.author ? ' — ' + book.author : ''}`;
+          spine.innerHTML = `<span class="t">${escapeHtml(book.title)}</span><span class="a">${escapeHtml(book.author || '')}</span>`;
+          spine.onclick = () => openBook(book.id);
+          slot.appendChild(spine);
+          shelfCase.appendChild(slot);
+        }
+        container.appendChild(section);
+      }
+
+      const n = library.books.length;
+      document.getElementById('summary').textContent =
+        `${n} ${n === 1 ? 'book' : 'books'} on ${library.shelves.length} ${library.shelves.length === 1 ? 'shelf' : 'shelves'}`;
+    }
+
+    // ---------- Adding / editing books ----------
+    const bookDialog = document.getElementById('bookDialog');
+
+    function drawStars() {
+      const box = document.getElementById('fStars');
+      box.innerHTML = '';
+      for (let i = 1; i <= 5; i++) {
+        const b = document.createElement('button');
+        b.type = 'button';
+        b.textContent = '★';
+        b.className = i <= currentRating ? 'on' : '';
+        b.onclick = () => { currentRating = (currentRating === i ? 0 : i); drawStars(); };
+        box.appendChild(b);
+      }
+    }
+
+    function openBook(id = null) {
+      if (library.shelves.length === 0) { addShelf(); if (library.shelves.length === 0) return; }
+      editingId = id;
+      const book = library.books.find(b => b.id === id);
+
+      document.getElementById('fShelf').innerHTML = library.shelves
+        .map(s => `<option value="${s.id}">${escapeHtml(s.name)}</option>`).join('');
+
+      document.getElementById('dialogTitle').textContent = book ? 'Edit book' : 'Add a book';
+      document.getElementById('fTitle').value = book ? book.title : '';
+      document.getElementById('fAuthor').value = book ? book.author : '';
+      document.getElementById('fShelf').value = book ? book.shelf : library.shelves[0].id;
+      document.getElementById('fColor').value = book ? book.color : PALETTE[Math.floor(Math.random() * PALETTE.length)];
+      document.getElementById('fNotes').value = book ? (book.notes || '') : '';
+      document.getElementById('deleteBtn').style.display = book ? '' : 'none';
+      currentRating = book ? (book.rating || 0) : 0;
+      drawStars();
+      bookDialog.showModal();
+      document.getElementById('fTitle').focus();
+    }
+
+    function saveBook(event) {
+      event.preventDefault();
+      const data = {
+        title: document.getElementById('fTitle').value.trim(),
+        author: document.getElementById('fAuthor').value.trim(),
+        shelf: document.getElementById('fShelf').value,
+        color: document.getElementById('fColor').value,
+        notes: document.getElementById('fNotes').value.trim(),
+        rating: currentRating,
+      };
+      if (!data.title) return;
+      if (editingId) {
+        Object.assign(library.books.find(b => b.id === editingId), data);
+      } else {
+        library.books.push({ id: uid(), ...data });
+      }
+      save(); render(); bookDialog.close();
+    }
+
+    function deleteBook() {
+      const book = library.books.find(b => b.id === editingId);
+      if (!book || !confirm(`Remove "${book.title}" from your library?`)) return;
+      library.books = library.books.filter(b => b.id !== editingId);
+      save(); render(); bookDialog.close();
+    }
+
+    // ---------- Shelves ----------
+    function addShelf() {
+      const name = prompt('Name your new shelf (e.g. Sci-Fi, To Read, Childhood):');
+      if (!name || !name.trim()) return;
+      library.shelves.push({ id: uid(), name: name.trim() });
+      save(); render();
+    }
+    function renameShelf(id) {
+      const shelf = library.shelves.find(s => s.id === id);
+      const name = prompt('New name for this shelf:', shelf.name);
+      if (!name || !name.trim()) return;
+      shelf.name = name.trim();
+      save(); render();
+    }
+    function removeShelf(id) {
+      const shelf = library.shelves.find(s => s.id === id);
+      const count = library.books.filter(b => b.shelf === id).length;
+      const msg = count
+        ? `Remove the "${shelf.name}" shelf and its ${count} ${count === 1 ? 'book' : 'books'}?`
+        : `Remove the "${shelf.name}" shelf?`;
+      if (!confirm(msg)) return;
+      library.shelves = library.shelves.filter(s => s.id !== id);
+      library.books = library.books.filter(b => b.shelf !== id);
+      save(); render();
+    }
+
+    // ---------- Backup ----------
+    function exportData() {
+      const blob = new Blob([JSON.stringify(library, null, 2)], { type: 'application/json' });
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = 'my-library-backup.json';
+      a.click();
+      URL.revokeObjectURL(a.href);
+    }
+    function importData(input) {
+      const file = input.files[0];
+      if (!file) return;
+      file.text().then(text => {
+        try {
+          const data = JSON.parse(text);
+          if (!Array.isArray(data.shelves) || !Array.isArray(data.books)) throw new Error();
+          if (!confirm('Replace your current library with this backup?')) return;
+          library = data; save(); render();
+        } catch { alert("That file doesn't look like a library backup."); }
+        input.value = '';
+      });
+    }
+
+    document.getElementById('search').addEventListener('input', render);
+    render();
+  </script>
+</body>
+</html>
